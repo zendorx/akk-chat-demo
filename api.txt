@@ -1,0 +1,18 @@
+
+
+{
+ 	"register" : {  "id" : "myname", "password" : "mypaswword"	},
+
+ 	"login" : { "id" : "myname", "password" : "mypassword" },
+
+ 	"message" : { "room" : "myroom", "data" : "text message" },
+
+ 	"create_room" : { "id" : "myroom" },
+
+ 	"delete_room" : { "id" : "myroom" },
+
+ 	"add_to_room" : { "id" : "myroom", "uid" : "user_id}
+
+ 	"remove_from_room" : { "id" : "myroom", "uid" : "user_id}
+
+}

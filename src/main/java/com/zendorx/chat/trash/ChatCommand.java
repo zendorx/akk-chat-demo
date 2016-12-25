@@ -1,4 +1,4 @@
-package com.zendorx.chat;
+package com.zendorx.chat.trash;
 
 import java.io.Serializable;
 

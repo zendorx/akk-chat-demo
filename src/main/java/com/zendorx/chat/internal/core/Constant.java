@@ -1,4 +1,4 @@
-package com.zendorx.chat;
+package com.zendorx.chat.internal.core;
 
 /**
  * Created by user on 31.10.2016.

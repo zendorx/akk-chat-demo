@@ -1,8 +1,9 @@
-package com.zendorx.chat;
+package com.zendorx.chat.trash;
 
 
 import java.lang.Object;
 
+import com.zendorx.chat.trash.ChatCommand;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 

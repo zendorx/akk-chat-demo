@@ -1,4 +1,4 @@
-package com.zendorx.chat;
+package com.zendorx.chat.internal;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -7,21 +7,24 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.io.Tcp;
 import akka.io.TcpMessage;
+import com.zendorx.chat.internal.core.Constant;
+import com.zendorx.chat.internal.core.ZLog;
 
 import java.net.InetSocketAddress;
 
 public class Kernel extends UntypedActor {
 
-    private int last_internal_id = 0;
+    ZLog zlog = new ZLog("Kernel");
+
 
 
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-  //  private ActorRef worker;
     private ActorRef tcpActor;
     private ActorRef manager;
     private int port = 9090;
     private String address = "localhost";
+    private int connection_id = 0;
 
     public  static Props props(ActorRef tcpActor, final String address, int port) {
         return Props.create(Kernel.class, tcpActor, address, port);
@@ -30,10 +33,9 @@ public class Kernel extends UntypedActor {
     @Override
     public void preStart()
     {
-        log.info("Kernel preStart");
-//        worker = getContext().actorOf(Props.create(ServerWorker.class), "worker");
+        zlog.m("Kernel preStart");
 
-        manager = getContext().actorOf(Manager.props(), Constant.MANAGER_ID);
+        manager = getContext().actorOf(ConnectionManager.props(), Constant.MANAGER_ID);
 
         if (tcpActor == null)
         {
@@ -45,7 +47,7 @@ public class Kernel extends UntypedActor {
 
     public Kernel(ActorRef tcpActor, final String address, int port)
     {
-        log.info("Kernel Kernel");
+        zlog.m("Kernel Kernel");
         this.tcpActor = tcpActor;
         this.port = port;
         this.address = address;
@@ -55,27 +57,28 @@ public class Kernel extends UntypedActor {
     public void onReceive(Object message) throws Throwable {
         if (message instanceof Tcp.Bound)
         {
-            log.info("Kernel bound");
+            zlog.m("Kernel has bound");
         }
         else
         if (message instanceof Tcp.CommandFailed)
         {
-            log.info("Kernel stopped");
+            zlog.w("Kernel has stopped");
             getContext().stop(getSelf());
         } else
         if (message instanceof Tcp.Connected)
         {
-            log.info("Kernel connected");
-            //final Tcp.Connected conn = (Tcp.Connected) message;
-            last_internal_id++;
-            ActorRef handler = getContext().actorOf(ConnectionHandler.props(last_internal_id),
-                    Constant.getConnectionHandlerID(last_internal_id));
+            zlog.m("Kernel has connected");
+            connection_id++;
+
+            ActorRef handler = getContext().actorOf(
+                    ConnectionHandler.props(connection_id),
+                    Constant.getConnectionHandlerID(connection_id));
 
             getSender().tell(TcpMessage.register(handler), getSelf());
         }
         else
         {
-            log.info("Kernel unhandled");
+            zlog.e("Error: kernel unhandled message");
             unhandled(message);
         }
     }

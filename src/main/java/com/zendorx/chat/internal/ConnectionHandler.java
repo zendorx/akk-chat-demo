@@ -1,17 +1,17 @@
-package com.zendorx.chat;
+package com.zendorx.chat.internal;
 
 import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.io.Tcp;
-import akka.io.TcpMessage;
-import com.zendorx.simple.TestTCPClient;
+import com.zendorx.chat.internal.core.Api;
+import com.zendorx.chat.internal.core.Command;
 
-import java.net.InetSocketAddress;
+import java.util.List;
 
 public class ConnectionHandler extends UntypedActor {
 
-    private final int internal_id;
+    private final int id;
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     public static Props props(int id) {
@@ -20,7 +20,7 @@ public class ConnectionHandler extends UntypedActor {
 
     public ConnectionHandler(int id)
     {
-        internal_id = id;
+        this.id = id;
     }
 
     private ActorRef manager = null;
@@ -35,18 +35,18 @@ public class ConnectionHandler extends UntypedActor {
     @Override
     public void postStop()
     {
-        log.info("ConnectionHandler stopped, id: " + String.valueOf(internal_id));
+        log.info("ConnectionHandler stopped, id: " + String.valueOf(id));
 
-        if (manager != null)
+        /*if (manager != null)
         {
-            manager.tell(new Manager.Unregister(internal_id), getSelf());
-        }
+            manager.tell(new ConnectionManager.Unregister(id), getSelf());
+        }*/
     }
 
     @Override
     public void preStart()
     {
-        log.info("ConnectionHandler created, id: " + String.valueOf(internal_id));
+        log.info("ConnectionHandler created, id: " + String.valueOf(id));
 
     }
 
@@ -57,19 +57,19 @@ public class ConnectionHandler extends UntypedActor {
         {
             log.info("ConnectionHandler Received");
             final String data = ((Tcp.Received) message).data().utf8String();
-            Object object = CommandParser.parse(data);
+            List<Object> objects = Api.makeCommands(data);
 
-            if (object != null)
+            /*if (object != null)
             {
                // worker.tell(object, getSelf());
                 manager = getContext().actorFor("../" + Constant.MANAGER_ID);
-                manager.tell(new Manager.Register(internal_id), getSelf());
+                manager.tell(new ConnectionManager.Register(id), getSelf());
             }
             else
             {
                 log.info("ConnectionHandler command parse error");
                 die();
-            }
+            }*/
 
             /*log.info("In SimplisticHandlerActor - Received message: " + data);
             getSender().tell(TcpMessage.write(ByteString.fromArray(("echo " + data).getBytes())), getSelf());*/
@@ -77,7 +77,7 @@ public class ConnectionHandler extends UntypedActor {
         } else
         if (message instanceof Tcp.ConnectionClosed) {
 
-            log.info("ConnectionHandler " + String.valueOf(internal_id) + " connection closed, killing actor");
+            log.info("ConnectionHandler " + String.valueOf(id) + " connection closed, killing actor");
             die();
         }
     }
